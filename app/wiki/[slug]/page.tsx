@@ -9,13 +9,14 @@ import { logout } from "../../login/actions";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const article = await getArticle((await params).slug);
+  const user = await requireUser();
+  const article = await getArticle((await params).slug, false, user.role === "admin");
   return article ? { title: article.title, description: article.summary } : {};
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const user = await requireUser();
-  const article = await getArticle((await params).slug);
+  const article = await getArticle((await params).slug, false, user.role === "admin");
   if (!article) notFound();
   return (
     <main className="subpage">

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function WikiPage({ searchParams }: { searchParams: Promise<{ q?: string; sort?: string }> }) {
   const user = await requireUser();
   const params = await searchParams; const query = (params.q || "").trim().toLowerCase(); const sort = params.sort || "updated";
-  const articles = (await listArticles()).filter((article) => !query || `${article.title} ${article.summary} ${article.category}`.toLowerCase().includes(query)).sort((a, b) => sort === "title" ? a.title.localeCompare(b.title, "de") : sort === "created" ? +new Date(b.createdAt) - +new Date(a.createdAt) : +new Date(b.updatedAt) - +new Date(a.updatedAt));
+  const articles = (await listArticles(false, user.role === "admin")).filter((article) => !query || `${article.title} ${article.summary} ${article.category}`.toLowerCase().includes(query)).sort((a, b) => sort === "title" ? a.title.localeCompare(b.title, "de") : sort === "created" ? +new Date(b.createdAt) - +new Date(a.createdAt) : +new Date(b.updatedAt) - +new Date(a.updatedAt));
   const settings = await getSiteSettings();
   return (
     <main className="subpage">

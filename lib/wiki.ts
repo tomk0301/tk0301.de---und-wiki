@@ -95,14 +95,14 @@ function serialized<T>(operation: () => Promise<T>): Promise<T> {
   return result;
 }
 
-export async function listArticles(includeDrafts = false) {
+export async function listArticles(includeDrafts = false, includePrivate = false) {
   return (await readAll())
-    .filter((article) => includeDrafts || (article.status === "published" && article.visibility === "public"))
+    .filter((article) => includeDrafts || (article.status === "published" && (includePrivate || article.visibility === "public")))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
-export async function getArticle(slug: string, includeDrafts = false) {
+export async function getArticle(slug: string, includeDrafts = false, includePrivate = false) {
   return (await readAll()).find((article) => article.slug === slug &&
-    (includeDrafts || (article.status === "published" && article.visibility === "public")));
+    (includeDrafts || (article.status === "published" && (includePrivate || article.visibility === "public"))));
 }
 export async function getArticleById(id: string) {
   return (await readAll()).find((article) => article.id === id);

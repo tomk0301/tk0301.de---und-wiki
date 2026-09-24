@@ -84,7 +84,7 @@ export async function uploadImageAction(formData: FormData) {
   if (!extension) redirect(`/verwaltung/articles/${id}/edit?error=image-type`);
   const directory = path.join(process.cwd(), ".wrangler", "wiki-uploads");
   await mkdir(directory, { recursive: true });
-  const filename = `${randomUUID()}.${extension}`;
+  const filename = `${id}-${randomUUID()}.${extension}`;
   await writeFile(path.join(directory, filename), Buffer.from(await file.arrayBuffer()), { mode: 0o640 });
   redirect(`/verwaltung/articles/${id}/edit?uploaded=${encodeURIComponent(`/uploads/wiki/${filename}`)}`);
 }

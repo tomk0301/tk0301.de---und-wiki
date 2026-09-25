@@ -33,6 +33,13 @@ test("local backup encrypts public and private data and verifies a restore", asy
     assert.equal(restored.status, 0, restored.stderr);
     assert.equal(await readFile(path.join(restore, ".wrangler/wiki-content/private/private.md"), "utf8"), "private article\n");
     assert.equal(await readFile(path.join(restore, ".env"), "utf8"), "SESSION_SECRET=test\n");
+    const indexPath = path.join(target, "index.json");
+    const indexed = JSON.parse(await readFile(indexPath, "utf8"));
+    indexed[0].createdAt = "2020-01-01T00:00:00.000Z";
+    await writeFile(indexPath, `${JSON.stringify(indexed)}\n`);
+    assert.equal(invoke("backup").status, 0);
+    assert.equal((await readdir(target)).filter((file) => file.endsWith(".tar.gpg")).length, 1);
+    assert.equal(JSON.parse(await readFile(indexPath, "utf8")).length, 1);
     const status = JSON.parse(await readFile(path.join(data, "wiki-backup-status.json"), "utf8"));
     assert.equal(status.result, "Erfolgreich");
     assert.ok(status.verifiedAt);

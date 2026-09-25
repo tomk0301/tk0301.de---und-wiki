@@ -13,7 +13,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <main className="subpage">
       <header className="site-header">
-        <Link className="brand" href="/"><span className="brand-mark">TK</span><span>tk0301.site</span></Link>
+        <div className="brand"><span className="brand-mark">TK</span><span>tk0301.site</span></div>
         <nav><Link href="/">Abbrechen</Link></nav>
       </header>
       <div className="login-wrap">

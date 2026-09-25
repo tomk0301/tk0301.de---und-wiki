@@ -3,7 +3,7 @@ import Link from "next/link";
 import { listArticles } from "../../lib/wiki";
 import { listUsers } from "../../lib/users";
 import { requireRole } from "../../lib/current-user";
-import { logout } from "../login/actions";
+import { SiteHeader } from "../site-header";
 
 export const metadata: Metadata = { title: "Administration" };
 export const dynamic = "force-dynamic";
@@ -15,10 +15,7 @@ export default async function AdminPage() {
   const published = articles.filter((article) => article.status === "published").length;
   return (
     <main className="subpage">
-      <header className="site-header">
-        <Link className="brand" href="/"><span className="brand-mark">TK</span><span>Administration</span></Link>
-        <nav><Link href="/wiki">Hauptseite</Link><Link href="/verwaltung/articles">Artikel verwalten</Link><Link href="/verwaltung/einstellungen">Konfiguration</Link><form action={logout}><button className="button button-small" type="submit">Abmelden</button></form></nav>
-      </header>
+      <SiteHeader title="Administration" />
       <div className="page-shell">
         <section className="page-heading">
           <div className="eyebrow">Sicher angemeldet</div>

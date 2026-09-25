@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listArticles } from "../../../lib/wiki";
 import { requireRole } from "../../../lib/current-user";
-import { logout } from "../../login/actions";
+import { SiteHeader } from "../../site-header";
 import { deleteArticleAction } from "./actions";
 import { DeleteButton } from "./delete-button";
 
@@ -19,10 +19,7 @@ export default async function ArticlesAdminPage({
   const deleted = Boolean((await searchParams).deleted);
   return (
     <main className="subpage">
-      <header className="site-header">
-        <Link className="brand" href="/verwaltung"><span className="brand-mark">TK</span><span>Artikelpflege</span></Link>
-        <nav><Link href="/wiki">Hauptseite</Link><Link href="/verwaltung/articles">Artikel verwalten</Link><Link href="/verwaltung/einstellungen">Konfiguration</Link><Link href="/verwaltung/benutzer">Benutzer</Link><form action={logout}><button className="button button-small" type="submit">Abmelden</button></form></nav>
-      </header>
+      <SiteHeader title="Artikelpflege" />
       <div className="page-shell">
         <section className="admin-title-row">
           <div>

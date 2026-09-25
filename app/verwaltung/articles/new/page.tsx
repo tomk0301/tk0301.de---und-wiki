@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireRole } from "../../../../lib/current-user";
 import { ArticleForm } from "../article-form";
 import { createArticleAction } from "../actions";
+import { SiteHeader } from "../../../site-header";
 
 export const metadata: Metadata = { title: "Neuer Wikiartikel" };
 export const dynamic = "force-dynamic";
@@ -11,9 +11,7 @@ export default async function NewArticlePage({ searchParams }: { searchParams: P
   await requireRole("admin");
   return (
     <main className="subpage">
-      <header className="site-header">
-        <Link className="brand" href="/verwaltung/articles"><span className="brand-mark">TK</span><span>Neuer Artikel</span></Link>
-      </header>
+      <SiteHeader title="Neuer Artikel" />
       <div className="page-shell editor-shell">
         <div className="eyebrow">Wiki verwalten</div>
         <h1>Artikel anlegen</h1>

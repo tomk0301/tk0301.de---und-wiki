@@ -6,6 +6,7 @@ import { getUserById } from "../../../../lib/users";
 import { deleteUserAction, revokeDeviceAction, updateUserAction } from "../actions";
 import { listDevices } from "../../../../lib/devices";
 import { listArticles } from "../../../../lib/wiki";
+import { SiteHeader } from "../../../site-header";
 
 export const metadata: Metadata = { title: "Benutzer bearbeiten" };
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export default async function EditUserPage({
   const otpUri = `otpauth://totp/${label}?secret=${user.totpSecret}&issuer=${issuer}&digits=6&period=30`;
   return (
     <main className="subpage">
-      <header className="site-header"><Link className="brand" href="/verwaltung/benutzer"><span className="brand-mark">TK</span><span>Benutzer bearbeiten</span></Link><nav><Link href="/wiki">Hauptseite</Link><Link href="/verwaltung/articles">Artikel verwalten</Link><Link href="/verwaltung/einstellungen">Konfiguration</Link><Link href="/verwaltung/benutzer">Benutzer</Link></nav></header>
+      <SiteHeader title="Benutzer bearbeiten" />
       <div className="page-shell editor-shell">
         <div className="eyebrow">{user.role === "admin" ? "Administrator" : "Leser"} · {user.active ? "aktiv" : "gesperrt"}</div>
         <h1>{user.displayName}</h1>

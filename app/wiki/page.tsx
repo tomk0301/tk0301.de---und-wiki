@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listArticles } from "../../lib/wiki";
 import { requireUser } from "../../lib/current-user";
-import { logout } from "../login/actions";
+import { SiteHeader } from "../site-header";
 import { getSiteSettings } from "../../lib/site-settings";
 
 export const metadata: Metadata = { title: "Wiki", description: "Geschützte Wissenssammlung von TK0301." };
@@ -15,10 +15,7 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
   const settings = await getSiteSettings();
   return (
     <main className="subpage">
-      <header className="site-header">
-        <Link className="brand" href="/"><span className="brand-mark">TK</span><span>Wiki</span></Link>
-        <nav aria-label="Wiki-Navigation"><Link href="/">Hauptseite</Link>{user.role === "admin" && <><Link href="/verwaltung/articles">Artikel verwalten</Link><Link href="/verwaltung/einstellungen">Konfiguration</Link></>}<form action={logout}><button className="button button-small" type="submit">Abmelden</button></form></nav>
-      </header>
+      <SiteHeader title="Wiki" />
       <div className="page-shell">
         <section className="page-heading">
           <div className="eyebrow">{settings.wikiEyebrow}</div>

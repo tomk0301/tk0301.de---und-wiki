@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { readFile } from "node:fs/promises";
 import { requireRole } from "../../../lib/current-user";
 import { backupStatusFile, readBackupConfig } from "../../../lib/backup-config";
 import { requestBackupAction, saveBackupConfigAction } from "./actions";
+import { SiteHeader } from "../../site-header";
 
 export const metadata: Metadata = { title: "Backup & Restore" };
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export default async function BackupPage({ searchParams }: { searchParams: Promi
   let status: Status = {};
   try { status = JSON.parse(await readFile(backupStatusFile, "utf8")); } catch { /* noch kein Lauf */ }
   const notice = await searchParams;
-  return <main className="subpage"><header className="site-header"><Link className="brand" href="/verwaltung"><span className="brand-mark">TK</span><span>Backup & Restore</span></Link><nav><Link href="/verwaltung">Administration</Link><Link href="/wiki">Wiki</Link></nav></header>
+  return <main className="subpage"><SiteHeader title="Backup & Restore" />
     <div className="page-shell editor-shell"><div className="eyebrow">Nur für Administratoren</div><h1>Wiki-Datensicherung</h1>
       <p>Öffentliche und private Artikel, Uploads, Benutzer, Geräte und Einstellungen werden gemeinsam verschlüsselt gesichert. Das Ziel und der WebDAV-Benutzer sind unabhängig von SCC.</p>
       {notice.saved && <p className="success">Konfiguration gespeichert.</p>}{notice.queued && <p className="success">Auftrag vorgemerkt. Der Sicherungsdienst bearbeitet ihn in wenigen Minuten.</p>}

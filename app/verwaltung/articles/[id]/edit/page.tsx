@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireRole } from "../../../../../lib/current-user";
 import { getArticleById } from "../../../../../lib/wiki";
 import { ArticleForm } from "../../article-form";
 import { deleteArticleAction, updateArticleAction } from "../../actions";
-import { logout } from "../../../../login/actions";
+import { SiteHeader } from "../../../../site-header";
 
 export const metadata: Metadata = { title: "Wikiartikel bearbeiten" };
 export const dynamic = "force-dynamic";
@@ -23,9 +22,7 @@ export default async function EditArticlePage({
   const query = await searchParams;
   return (
     <main className="subpage">
-      <header className="site-header">
-        <Link className="brand" href="/verwaltung/articles"><span className="brand-mark">TK</span><span>Artikel bearbeiten</span></Link><nav><Link href="/wiki">Hauptseite</Link><Link href="/verwaltung">Verwaltung</Link><form action={logout}><button className="button button-small" type="submit">Abmelden</button></form></nav>
-      </header>
+      <SiteHeader title="Artikel bearbeiten" />
       <div className="page-shell editor-shell">
         <div className="eyebrow">{article.status === "published" ? "Veröffentlicht" : "Entwurf"}</div>
         <h1>{article.title}</h1>

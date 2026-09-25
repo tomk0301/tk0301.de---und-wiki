@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireRole } from "../../../../lib/current-user";
 import { createUserAction } from "../actions";
+import { SiteHeader } from "../../../site-header";
 
 export const metadata: Metadata = { title: "Benutzer anlegen" };
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
   const error = (await searchParams).error;
   return (
     <main className="subpage">
-      <header className="site-header"><Link className="brand" href="/verwaltung/benutzer"><span className="brand-mark">TK</span><span>Neuer Benutzer</span></Link></header>
+      <SiteHeader title="Neuer Benutzer" />
       <div className="page-shell editor-shell">
         <div className="eyebrow">Zugriff einrichten</div>
         <h1>Benutzer anlegen</h1>

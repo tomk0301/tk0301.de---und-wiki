@@ -28,17 +28,19 @@ export function MarkdownEditor({ defaultValue, required }: { defaultValue?: stri
     el.focus(); el.setSelectionRange(start + text.length, start + text.length);
     el.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  function insertCard(kind: "hinweis" | "warnung" | "info" | "neutral" | "farbe") {
+  function insertCard(kind: "hinweis" | "warnung" | "info" | "neutral" | "farbe", titled = false) {
     const el = ref.current; if (!el) return;
     const start = el.selectionStart, end = el.selectionEnd;
     const before = el.value.slice(0, start), after = el.value.slice(end);
     const body = el.value.slice(start, end).trim() || "Text hier eingeben";
     const lead = before && !before.endsWith("\n\n") ? "\n\n" : "";
     const tail = after && !after.startsWith("\n\n") ? "\n\n" : "";
-    const opening = `:::${kind}\n`;
+    const title = "Eigener Kartentitel";
+    const opening = `:::${kind}${titled ? ` ${title}` : ""}\n`;
     el.value = `${before}${lead}${opening}${body}\n:::${tail}${after}`;
     const bodyStart = before.length + lead.length + opening.length;
-    el.focus(); el.setSelectionRange(bodyStart, bodyStart + body.length);
+    const titleStart = before.length + lead.length + `:::${kind} `.length;
+    el.focus(); el.setSelectionRange(titled ? titleStart : bodyStart, titled ? titleStart + title.length : bodyStart + body.length);
     el.dispatchEvent(new Event("input", { bubbles: true }));
   }
   async function importMarkdown(file?: File) {
@@ -82,8 +84,8 @@ export function MarkdownEditor({ defaultValue, required }: { defaultValue?: stri
     <button type="button" onClick={() => apply("> ", "")} title="Zitat">❞</button>
     <button type="button" onClick={() => apply("![", "](https://)")} title="Bild">▧</button>
     <button type="button" onClick={() => insertText("\n\n---\n\n")} title="Trennlinie">—</button>
-    <select aria-label="Kartenvariante" defaultValue="" onChange={(event) => { const kind = event.currentTarget.value as "hinweis" | "warnung" | "info" | "neutral" | "farbe" | ""; if (kind) insertCard(kind); event.currentTarget.value = ""; }}>
-      <option value="">▣ Karte</option><option value="hinweis">Hinweis-Karte</option><option value="warnung">Warnung-Karte</option><option value="info">Info-Karte</option><option value="neutral">Neutraler Rahmen</option><option value="farbe">Farblich hervorgehobener Bereich</option>
+    <select aria-label="Kartenvariante" defaultValue="" onChange={(event) => { const kind = event.currentTarget.value as "hinweis" | "warnung" | "info" | "neutral" | "farbe" | "hinweis-titel" | ""; if (kind) insertCard(kind === "hinweis-titel" ? "hinweis" : kind, kind === "hinweis-titel"); event.currentTarget.value = ""; }}>
+      <option value="">▣ Karte</option><option value="hinweis">Hinweis-Karte</option><option value="hinweis-titel">Hinweis-Karte mit eigenem Titel</option><option value="warnung">Warnung-Karte</option><option value="info">Info-Karte</option><option value="neutral">Neutraler Rahmen</option><option value="farbe">Farblich hervorgehobener Bereich</option>
     </select>
   </div><label className="markdown-import">Markdown-Datei importieren <input type="file" accept=".md,text/markdown,text/plain" onChange={(event) => importMarkdown(event.target.files?.[0])} /></label><textarea ref={ref} className="content-editor" name="content" defaultValue={defaultValue} minLength={20} maxLength={50000} rows={20} required={required} placeholder={"## Zwischenüberschrift\n\nAbsatztext\n\n- Listenpunkt"} /></div>;
 }

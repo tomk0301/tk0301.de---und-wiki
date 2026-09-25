@@ -1,4 +1,4 @@
-import { splitMarkdownBlocks } from "../../lib/markdown-blocks";
+import { parseCardOpening, splitMarkdownBlocks } from "../../lib/markdown-blocks";
 
 export function ArticleContent({ content }: { content: string }) {
   const normalized = content
@@ -17,7 +17,7 @@ export function ArticleContent({ content }: { content: string }) {
         const headingLevel = lines[0].startsWith("### ") ? 3 : lines[0].startsWith("## ") ? 2 : 0;
         const heading = headingLevel ? lines[0].slice(headingLevel + 1).trim() : null;
         const body = heading ? lines.slice(1) : lines;
-        const cardMatch = lines[0]?.match(/^:::(hinweis|warnung|info|neutral|farbe)$/);
+        const card = parseCardOpening(lines[0] || "");
         if (lines[0]?.startsWith("```") && lines[lines.length - 1] === "```") {
           return <pre key={index}><code>{block.split("\n").slice(1, -1).join("\n")}</code></pre>;
         }
@@ -25,9 +25,9 @@ export function ArticleContent({ content }: { content: string }) {
           return <blockquote key={index}>{lines.map((line, item) => <p key={item}>{inline(line.slice(2))}</p>)}</blockquote>;
         }
         if (lines.length === 1 && /^(---|\*\*\*|___)$/.test(lines[0])) return <hr key={index} />;
-        if (cardMatch) {
+        if (card) {
           const cardBody = block.split("\n").slice(1, -1).join("\n").trim();
-          return <div className={`article-card card-${cardMatch[1]}`} key={index}>{cardBody.split(/\n\s*\n/).filter(Boolean).map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph.split("\n").map((line, lineIndex) => <span key={lineIndex}>{lineIndex > 0 && <br />}{inline(line.trim())}</span>)}</p>)}</div>;
+          return <div className={`article-card card-${card.kind}`} key={index}>{card.title && <strong className="article-card-title">{inline(card.title)}</strong>}{cardBody.split(/\n\s*\n/).filter(Boolean).map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph.split("\n").map((line, lineIndex) => <span key={lineIndex}>{lineIndex > 0 && <br />}{inline(line.trim())}</span>)}</p>)}</div>;
         }
         const previousLines = index > 0 ? blocks[index - 1].split("\n").map((line) => line.trim()).filter(Boolean) : [];
         const previousWasHeadingOnly = previousLines.length === 1 && /^#{2,3}\s+/.test(previousLines[0] || "");

@@ -1,3 +1,8 @@
+export function parseCardOpening(line: string): { kind: string; title: string } | null {
+  const match = line.trim().match(/^:::(hinweis|warnung|info|neutral|farbe)(?:[ \t]+(.+))?$/);
+  return match ? { kind: match[1], title: match[2]?.trim() || "" } : null;
+}
+
 export function splitMarkdownBlocks(source: string): string[] {
   const blocks: string[] = [];
   let current: string[] = [];
@@ -8,7 +13,7 @@ export function splitMarkdownBlocks(source: string): string[] {
   };
   for (const line of source.split("\n")) {
     const trimmed = line.trim();
-    if (!inCard && /^:::(hinweis|warnung|info|neutral|farbe)$/.test(trimmed)) {
+    if (!inCard && parseCardOpening(trimmed)) {
       flush(); current.push(trimmed); inCard = true; continue;
     }
     if (inCard) {

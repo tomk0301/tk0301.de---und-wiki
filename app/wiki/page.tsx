@@ -33,7 +33,7 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
           ))}
           {articles.length === 0 && <div className="empty-state"><h2>Noch keine veröffentlichten Artikel</h2><p>Schau später wieder vorbei.</p></div>}
         </section>
-      </div><footer className="site-footer">© Thomas Knebel · Version 02.08.2026</footer>
+      </div>
     </main>
   );
 }

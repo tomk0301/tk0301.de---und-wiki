@@ -30,7 +30,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         <h1>{article.title}</h1>
         <p>{article.summary}</p>
         <ArticleContent content={article.content} />
-      </div><footer className="site-footer">© Thomas Knebel · Version 02.08.2026</footer>
+      </div>
     </main>
   );
 }

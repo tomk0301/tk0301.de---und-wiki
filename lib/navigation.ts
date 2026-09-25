@@ -5,10 +5,7 @@ export function navigationItems(role: NavigationRole) {
   if (role !== "admin") return common;
   return [
     ...common,
-    { href: "/verwaltung", label: "Administration" },
     { href: "/verwaltung/articles", label: "Artikel verwalten" },
-    { href: "/verwaltung/benutzer", label: "Benutzer" },
-    { href: "/verwaltung/einstellungen", label: "Konfiguration" },
-    { href: "/verwaltung/backup", label: "Backup & Restore" },
+    { href: "/verwaltung", label: "Administration" },
   ];
 }

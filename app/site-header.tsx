@@ -7,7 +7,7 @@ export async function SiteHeader({ title, editorHref }: { title: string; editorH
   const user = await getCurrentUser();
   return (
     <header className="site-header">
-      <div className="brand"><span className="brand-mark">TK</span><span>{title}</span></div>
+      <div className="brand" aria-label={`TK0301 · ${title}`}><span className="brand-mark">TK</span></div>
       <nav className="site-nav" aria-label="Hauptnavigation">
         {navigationItems(user?.role || null).map(({ href, label }) => <Link key={href} href={href}>{label}</Link>)}
         {editorHref && user?.role === "admin" && <Link href={editorHref}>Zurück zum Editor</Link>}

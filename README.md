@@ -3,6 +3,16 @@
 Persönliche Website für `tk0301.site` und Wiki für
 `wiki.tk0301.site`.
 
+## Versionierung
+
+Die Versionsnummer stammt zentral aus `package.json` und erscheint in der
+Fußleiste. Die erste Wiki-Veröffentlichung nach diesem Schema ist `1.0.0`
+(Linie 1.0). Größere funktionale Erweiterungen erhöhen die mittlere Zahl
+und setzen die letzte auf null, z. B. `1.1.0`. Kleinere Ergänzungen und
+Korrekturen erhöhen nur die letzte Zahl, z. B. `1.0.1`. Dazu
+`node scripts/bump-version.mjs minor` beziehungsweise `patch` verwenden;
+das Skript hält `package-lock.json` synchron.
+
 ## Markdown-Inhalte
 
 Die aktive Anwendung liest Artikel aus `.wrangler/wiki-content/public` und

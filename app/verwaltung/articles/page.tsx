@@ -50,7 +50,7 @@ export default async function ArticlesAdminPage({
             </article>
           ))}
         </section>
-      </div><footer className="site-footer">© Thomas Knebel · Version 02.08.2026</footer>
+      </div>
     </main>
   );
 }

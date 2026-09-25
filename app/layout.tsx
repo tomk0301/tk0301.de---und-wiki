@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { WIKI_VERSION } from "../lib/version";
 
 export const metadata: Metadata = {
   title: {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="de">
-      <body>{children}<footer className="site-footer global-footer">© Thomas Knebel · Version 02.08.2026</footer></body>
+      <body>{children}<footer className="site-footer global-footer">© Thomas Knebel · Version {WIKI_VERSION}</footer></body>
     </html>
   );
 }

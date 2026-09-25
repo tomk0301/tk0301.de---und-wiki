@@ -44,7 +44,7 @@ export function ArticleForm({ action, article, error, uploaded }: Props) {
         <label className="field field-wide">
           Inhalt
           <MarkdownEditor defaultValue={article?.content} required />
-            <span className="field-help">Formatierung: <code>## Überschrift</code> oder <code>### Unterüberschrift</code>, <code>**fett**</code>, <code>*kursiv*</code>, <code>__unterstrichen__</code>, Link mit <code>[Anzeigetext](https://...)</code>, Leerzeile für Absätze, <code>- Listenpunkt</code>.</span>
+            <span className="field-help">Formatierung: <code>## Überschrift</code> oder <code>### Unterüberschrift</code>, <code>**fett**</code>, <code>*kursiv*</code>, <code>__unterstrichen__</code>, Link mit <code>[Anzeigetext](https://...)</code>, Leerzeile für Absätze, <code>- Listenpunkt</code>. Karten über „▣ Karte“ in der Werkzeugleiste einfügen.</span>
         </label>
         <label className="field">
           Status

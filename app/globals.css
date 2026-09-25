@@ -206,6 +206,7 @@ footer { padding: 32px clamp(24px, 6vw, 88px); display: flex; justify-content: s
 .article-table th { background:var(--cream); font-weight:800; }
 .article-card { margin:14px 0; padding:14px 18px; border:1px solid var(--line); border-radius:6px; background:#fff; }
 .article-card p { margin:0; }.card-hinweis { border-left:5px solid #d4a72c; }.card-warnung { border-left:5px solid #b3342b; background:#fff4f2; }.card-info { border-left:5px solid #3976b8; background:#f1f7ff; }.card-farbe { background:var(--lime); border-color:var(--lime); }
+.article-card p + p { margin-top:12px; }
 .section-editor details { margin-bottom:10px; border:1px solid var(--line); border-radius:4px; background:#fff; }
 .section-editor summary { padding:14px; cursor:pointer; font-weight:900; font-size:21px; letter-spacing:-.01em; }
 .section-editor textarea { width:100%; border:0; border-top:1px solid var(--line); border-radius:0; resize:vertical; }

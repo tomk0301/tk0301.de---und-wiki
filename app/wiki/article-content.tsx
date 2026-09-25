@@ -1,9 +1,11 @@
+import { splitMarkdownBlocks } from "../../lib/markdown-blocks";
+
 export function ArticleContent({ content }: { content: string }) {
   const normalized = content
     .replace(/\r\n/g, "\n")
     // Headings start their own block even when the author omitted a blank line.
     .replace(/(^|\n)(#{2,3}\s+)/g, "$1\n\n$2");
-  const blocks = normalized.split(/\n{2,}/);
+  const blocks = splitMarkdownBlocks(normalized);
   const headings = blocks.flatMap((block) => { const first = block.split("\n")[0]?.trim() || ""; if (!/^#{2,3}\s+/.test(first)) return []; const level = first.startsWith("### ") ? 3 : 2; const title = first.slice(level + 1).trim(); return [{ level, title, id: headingId(title) }]; });
   const firstHeadingIndex = blocks.findIndex((block) => /^#{2,3}\s+/.test(block.split("\n")[0]?.trim() || ""));
   return (
@@ -24,8 +26,8 @@ export function ArticleContent({ content }: { content: string }) {
         }
         if (lines.length === 1 && /^(---|\*\*\*|___)$/.test(lines[0])) return <hr key={index} />;
         if (cardMatch) {
-          const cardBody = lines.slice(1).filter((line) => line !== ":::");
-          return <div className={`article-card card-${cardMatch[1]}`} key={index}><p>{cardBody.map((line, n) => <span key={n}>{n > 0 && <br />}{inline(line)}</span>)}</p></div>;
+          const cardBody = block.split("\n").slice(1, -1).join("\n").trim();
+          return <div className={`article-card card-${cardMatch[1]}`} key={index}>{cardBody.split(/\n\s*\n/).filter(Boolean).map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph.split("\n").map((line, lineIndex) => <span key={lineIndex}>{lineIndex > 0 && <br />}{inline(line.trim())}</span>)}</p>)}</div>;
         }
         const previousLines = index > 0 ? blocks[index - 1].split("\n").map((line) => line.trim()).filter(Boolean) : [];
         const previousWasHeadingOnly = previousLines.length === 1 && /^#{2,3}\s+/.test(previousLines[0] || "");

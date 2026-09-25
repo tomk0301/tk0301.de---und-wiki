@@ -11,6 +11,35 @@ Frontmatter; fertige `.md`-Dateien können im Editor importiert werden.
 Öffentliche Artikel liegen in diesem Repository unter `content/articles/public`.
 Private Artikel und Laufzeitdaten bleiben ausschließlich auf dem Server.
 
+## Backup & Restore
+
+Unter `/verwaltung/backup` wird ein **eigenes** Wiki-Sicherungsziel konfiguriert:
+WebDAV mit separatem NAS-Benutzer und eigenem Zielordner oder ein für den
+Dienstbenutzer `thomas` beschreibbarer lokaler/gemounteter Pfad. SCC-Zugangsdaten
+und SCC-Sicherungsverzeichnisse werden nicht übernommen. Die Konfiguration
+liegt mit Modus 0600 unter `.wrangler/wiki-backup-config.json` und gehört
+ausdrücklich nicht ins Repository.
+Für selbstsignierte WebDAV-Zertifikate ist zusätzlich der SHA-256-Fingerabdruck
+zu hinterlegen; bei Zertifikatswechsel muss dieser bewusst aktualisiert werden.
+
+Der Dienst sichert `.wrangler/wiki-content` (öffentlich und privat), Benutzer,
+Geräte, Einstellungen, Uploads, den alten Artikelbestand und `.env` in ein
+GPG-verschlüsseltes Archiv. Nach Upload wird das Archiv erneut geladen,
+per SHA-256 geprüft, entschlüsselt und isoliert extrahiert. Erst danach gilt
+ein Lauf als erfolgreich. Die tägliche Sicherung und manuelle Aufträge aus
+der Administrationsseite werden von zwei systemd-Timern ausgeführt; alte
+Archive werden erst nach einem erfolgreichen neuen Backup gemäß Aufbewahrung
+gelöscht.
+
+Den Verschlüsselungsschlüssel **außerhalb des Servers** sicher verwahren. Ohne
+ihn ist ein Restore nach Serverausfall nicht möglich. Für einen isolierten
+Restore-Test: `node scripts/wiki-backup.mjs verify`. Ein produktiver Restore
+ist absichtlich noch kein Web-Knopf. Ein geprüftes Archiv kann mit
+`node scripts/wiki-backup.mjs restore-to ARCHIV-ID /pfad/zu/einem/leeren/ziel`
+in einen separaten Ordner zurückgespielt werden. Erst nach Sichtprüfung,
+separater Vorsicherung und Wartungsfenster dürfen die aktiven Dateien ersetzt
+werden. Das Restore-Ziel muss leer sein; die Produktivdaten bleiben unverändert.
+
 Nach einem Checkout für den Serverbetrieb die freigegebenen öffentlichen
 Dateien nach `.wrangler/wiki-content/public` kopieren. Die privaten Dateien
 dürfen dabei nicht ersetzt werden. Für die einmalige Übernahme des alten

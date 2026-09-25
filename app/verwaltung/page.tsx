@@ -35,6 +35,7 @@ export default async function AdminPage() {
           <Link className="button" href="/verwaltung/benutzer">Benutzer verwalten</Link>
         </section>
         <section className="admin-primary-action admin-secondary-action"><div><div className="eyebrow">Darstellung</div><h2>Konfiguration</h2><p>Einleitungstexte und Darstellung der Wiki-Übersicht bearbeiten.</p></div><Link className="button" href="/verwaltung/einstellungen">Konfiguration öffnen</Link></section>
+        <section className="admin-primary-action admin-secondary-action"><div><div className="eyebrow">Datensicherung</div><h2>Backup & Restore</h2><p>Verschlüsselte Sicherungen für öffentliche und private Wiki-Daten konfigurieren und prüfen.</p></div><Link className="button" href="/verwaltung/backup">Backup öffnen</Link></section>
       </div><footer className="site-footer">© Thomas Knebel · Version 02.08.2026</footer>
     </main>
   );

@@ -1,0 +1,11 @@
+[Unit]
+Description=Check TK0301 Wiki backup requests
+
+[Timer]
+OnBootSec=2m
+OnUnitActiveSec=2m
+Persistent=true
+Unit=wiki-backup-queue.service
+
+[Install]
+WantedBy=timers.target

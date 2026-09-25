@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily TK0301 Wiki backup
+
+[Timer]
+OnCalendar=*-*-* 02:35:00
+RandomizedDelaySec=15m
+Persistent=true
+Unit=wiki-backup.service
+
+[Install]
+WantedBy=timers.target

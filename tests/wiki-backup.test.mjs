@@ -1,0 +1,40 @@
+import { strict as assert } from "node:assert";
+import { spawnSync } from "node:child_process";
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { test } from "node:test";
+
+const worker = process.env.WIKI_BACKUP_WORKER || new URL("../scripts/wiki-backup.mjs", import.meta.url).pathname;
+test("local backup encrypts public and private data and verifies a restore", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wiki-backup-test-"));
+  const data = path.join(root, ".wrangler");
+  const target = path.join(root, "archives");
+  try {
+    for (const folder of ["wiki-content/public", "wiki-content/private", "wiki-uploads"]) await mkdir(path.join(data, folder), { recursive: true });
+    await writeFile(path.join(data, "wiki-content/public/public.md"), "public article\n");
+    await writeFile(path.join(data, "wiki-content/private/private.md"), "private article\n");
+    await writeFile(path.join(data, "wiki-users.json"), "[]\n");
+    await writeFile(path.join(data, "wiki-devices.json"), "[]\n");
+    await writeFile(path.join(data, "site-settings.json"), "{}\n");
+    await writeFile(path.join(data, "wiki-uploads/image.png"), "image");
+    await writeFile(path.join(root, ".env"), "SESSION_SECRET=test\n");
+    await writeFile(path.join(data, "wiki-backup-config.json"), JSON.stringify({ target: "local", localPath: target, passphrase: "test-passphrase-must-be-long-and-secret", enabled: true, retentionDays: 90 }));
+    const invoke = (action) => spawnSync(process.execPath, [worker, action], { cwd: root, env: { ...process.env, WIKI_APP_DIR: root }, encoding: "utf8" });
+    const backup = invoke("backup");
+    assert.equal(backup.status, 0, backup.stderr);
+    const files = await readdir(target);
+    assert.equal(files.filter((file) => file.endsWith(".tar.gpg")).length, 1);
+    assert.ok(!files.some((file) => file.endsWith(".tar")));
+    assert.equal(invoke("verify").status, 0);
+    const id = files.find((file) => file.endsWith(".tar.gpg"));
+    const restore = path.join(root, "restored");
+    const restored = spawnSync(process.execPath, [worker, "restore-to", id, restore], { cwd: root, env: { ...process.env, WIKI_APP_DIR: root }, encoding: "utf8" });
+    assert.equal(restored.status, 0, restored.stderr);
+    assert.equal(await readFile(path.join(restore, ".wrangler/wiki-content/private/private.md"), "utf8"), "private article\n");
+    assert.equal(await readFile(path.join(restore, ".env"), "utf8"), "SESSION_SECRET=test\n");
+    const status = JSON.parse(await readFile(path.join(data, "wiki-backup-status.json"), "utf8"));
+    assert.equal(status.result, "Erfolgreich");
+    assert.ok(status.verifiedAt);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});

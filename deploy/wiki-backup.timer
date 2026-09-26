@@ -1,9 +1,9 @@
 [Unit]
-Description=Daily TK0301 Wiki backup
+Description=Check configurable TK0301 Wiki backup schedule
 
 [Timer]
-OnCalendar=*-*-* 02:35:00
-RandomizedDelaySec=15m
+OnCalendar=hourly
+AccuracySec=1m
 Persistent=true
 Unit=wiki-backup.service
 

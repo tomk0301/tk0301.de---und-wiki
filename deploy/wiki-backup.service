@@ -9,7 +9,7 @@ User=thomas
 Group=www-data
 WorkingDirectory=/var/www/tk0301.site/app
 Environment=PATH=/home/thomas/.local/node/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/usr/bin/flock -w 300 /var/www/tk0301.site/app/.wrangler/wiki-backup.lock /home/thomas/.local/node/bin/node scripts/wiki-backup.mjs backup
+ExecStart=/usr/bin/flock -w 300 /var/www/tk0301.site/app/.wrangler/wiki-backup.lock /home/thomas/.local/node/bin/node scripts/wiki-backup.mjs scheduled
 UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true

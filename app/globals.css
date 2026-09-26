@@ -142,6 +142,13 @@ footer { padding: 32px clamp(24px, 6vw, 88px); display: flex; justify-content: s
 .admin-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
 .stat { background: white; padding: 28px; border-radius: 4px; }
 .stat strong { display: block; font-size: 34px; margin-top: 14px; }
+.backup-archive-card { min-width:0; }
+.backup-archive-card strong { font-size:26px; }
+.backup-archive-card small, .backup-archive-card code { display:block; overflow-wrap:anywhere; margin-top:8px; }
+.backup-actions, .backup-actions form { display:flex; align-items:center; gap:16px; }
+.backup-actions { margin-top:28px; overflow-x:auto; padding-bottom:4px; }
+.backup-actions .button { white-space:nowrap; }
+.backup-action-help { margin-top:24px !important; }
 .admin-primary-action {
   margin-top: 20px; padding: 34px; background: var(--lime); display: flex;
   align-items: center; justify-content: space-between; gap: 32px; border-radius: 4px;

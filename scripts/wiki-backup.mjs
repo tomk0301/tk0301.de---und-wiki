@@ -21,6 +21,8 @@ function run(command, args, options = {}) {
 async function config() {
   const parsed = JSON.parse(await fs.readFile(configFile, "utf8"));
   if (!parsed.enabled || !["local", "webdav"].includes(parsed.target) || !parsed.passphrase || parsed.passphrase.length < 24) throw new Error("Backup-Konfiguration fehlt oder ist deaktiviert");
+  if (parsed.target === "local" && process.env.WIKI_BACKUP_ALLOW_LOCAL_TEST !== "1") throw new Error("Lokale Sicherungsziele sind deaktiviert; nur NAS/WebDAV ist zulässig");
+  if (![6, 12, 24, 48, 168].includes(parsed.intervalHours ?? 24)) throw new Error("Ungültiger Sicherungsrhythmus");
   if (parsed.target === "webdav" && (!/^https:\/\//i.test(parsed.webdavUrl) || !parsed.username || !parsed.password)) throw new Error("WebDAV-Konfiguration unvollständig");
   if (parsed.target === "webdav" && parsed.allowSelfSigned && !/^[A-F0-9]{64}$/.test(parsed.certificateFingerprint || "")) throw new Error("SHA-256-Zertifikatsfingerabdruck fehlt");
   if (parsed.target === "local" && (!path.isAbsolute(parsed.localPath) || parsed.localPath === "/")) throw new Error("Lokales Ziel ungültig");
@@ -109,7 +111,7 @@ async function validate(c, encrypted, expectedHash, directory) {
 }
 async function backup(c) {
   await ensureTarget(c);
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "wiki-backup-"));
+  const directory = await fs.mkdtemp(path.join(process.env.WIKI_BACKUP_ALLOW_LOCAL_TEST === "1" ? os.tmpdir() : "/dev/shm", "wiki-backup-"));
   try {
     const encrypted = await encryptedArchive(c, directory);
     const id = `wiki-${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}-${digest(encrypted).slice(0, 8)}.tar.gpg`;
@@ -131,7 +133,7 @@ async function verify(c, selected) {
   const items = await index(c);
   const item = selected ? items.find((entry) => entry.id === selected) : items[0];
   if (!item || !namePattern.test(item.id)) throw new Error("Kein gültiges Archiv gefunden");
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "wiki-restore-test-"));
+  const directory = await fs.mkdtemp(path.join(process.env.WIKI_BACKUP_ALLOW_LOCAL_TEST === "1" ? os.tmpdir() : "/dev/shm", "wiki-restore-test-"));
   try {
     await validate(c, await readTarget(c, item.id), item.sha256, directory);
     await status({ result: "Erfolgreich", message: "Wiederherstellung isoliert getestet; Produktivdaten unverändert.", target: c.target, latest: item.id, verifiedAt: new Date().toISOString() });
@@ -143,7 +145,7 @@ async function restoreTo(c, selected, destination) {
   const items = await index(c);
   const item = items.find((entry) => entry.id === selected);
   if (!item) throw new Error("Archiv nicht im Backup-Index");
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "wiki-restore-"));
+  const directory = await fs.mkdtemp(path.join(process.env.WIKI_BACKUP_ALLOW_LOCAL_TEST === "1" ? os.tmpdir() : "/dev/shm", "wiki-restore-"));
   try {
     const extracted = await validate(c, await readTarget(c, item.id), item.sha256, directory);
     await fs.mkdir(destination, { recursive: true, mode: 0o700 });
@@ -162,15 +164,22 @@ async function processQueue(c) {
   try { if (request.action === "backup") await backup(c); else await verify(c); }
   finally { await fs.rm(`${requestFile}.processing`, { force: true }); }
 }
+async function scheduled(c) {
+  const latest = (await index(c))[0];
+  const last = latest ? Date.parse(latest.createdAt) : NaN;
+  if (Number.isFinite(last) && Date.now() - last < (c.intervalHours ?? 24) * 3600000) return;
+  console.log(await backup(c));
+}
 async function main() {
   const command = process.argv[2] || "backup";
-  if (!existsSync(configFile) && ["backup", "queue"].includes(command)) return;
-  if (["backup", "queue"].includes(command) && !JSON.parse(await fs.readFile(configFile, "utf8")).enabled) return;
+  if (!existsSync(configFile) && ["backup", "queue", "scheduled"].includes(command)) return;
+  if (["backup", "queue", "scheduled"].includes(command) && !JSON.parse(await fs.readFile(configFile, "utf8")).enabled) return;
   const c = await config();
   if (command === "backup") console.log(await backup(c));
   else if (command === "verify") console.log(await verify(c, process.argv[3]));
   else if (command === "restore-to") await restoreTo(c, process.argv[3], process.argv[4]);
   else if (command === "queue") await processQueue(c);
-  else throw new Error("Aufruf: wiki-backup.mjs backup|verify [Archiv-ID]|restore-to ARCHIV-ID LEERES-ZIEL|queue");
+  else if (command === "scheduled") await scheduled(c);
+  else throw new Error("Aufruf: wiki-backup.mjs backup|scheduled|verify [Archiv-ID]|restore-to ARCHIV-ID LEERES-ZIEL|queue");
 }
 main().catch(async (error) => { console.error(error.message); try { await status({ result: "Fehler", message: error.message }); } catch { /* status unavailable */ } process.exitCode = 1; });

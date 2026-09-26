@@ -4,8 +4,9 @@ import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promis
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
-const worker = process.env.WIKI_BACKUP_WORKER || new URL("../scripts/wiki-backup.mjs", import.meta.url).pathname;
+const worker = process.env.WIKI_BACKUP_WORKER || fileURLToPath(new URL("../scripts/wiki-backup.mjs", import.meta.url));
 test("local backup encrypts public and private data and verifies a restore", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "wiki-backup-test-"));
   const data = path.join(root, ".wrangler");
@@ -19,17 +20,19 @@ test("local backup encrypts public and private data and verifies a restore", asy
     await writeFile(path.join(data, "site-settings.json"), "{}\n");
     await writeFile(path.join(data, "wiki-uploads/image.png"), "image");
     await writeFile(path.join(root, ".env"), "SESSION_SECRET=test\n");
-    await writeFile(path.join(data, "wiki-backup-config.json"), JSON.stringify({ target: "local", localPath: target, passphrase: "test-passphrase-must-be-long-and-secret", enabled: true, retentionDays: 90 }));
-    const invoke = (action) => spawnSync(process.execPath, [worker, action], { cwd: root, env: { ...process.env, WIKI_APP_DIR: root }, encoding: "utf8" });
+    await writeFile(path.join(data, "wiki-backup-config.json"), JSON.stringify({ target: "local", localPath: target, passphrase: "test-passphrase-must-be-long-and-secret", enabled: true, retentionDays: 90, intervalHours: 24 }));
+    const invoke = (action) => spawnSync(process.execPath, [worker, action], { cwd: root, env: { ...process.env, WIKI_APP_DIR: root, WIKI_BACKUP_ALLOW_LOCAL_TEST: "1" }, encoding: "utf8" });
     const backup = invoke("backup");
     assert.equal(backup.status, 0, backup.stderr);
     const files = await readdir(target);
     assert.equal(files.filter((file) => file.endsWith(".tar.gpg")).length, 1);
+    assert.equal(invoke("scheduled").status, 0);
+    assert.equal((await readdir(target)).filter((file) => file.endsWith(".tar.gpg")).length, 1);
     assert.ok(!files.some((file) => file.endsWith(".tar")));
     assert.equal(invoke("verify").status, 0);
     const id = files.find((file) => file.endsWith(".tar.gpg"));
     const restore = path.join(root, "restored");
-    const restored = spawnSync(process.execPath, [worker, "restore-to", id, restore], { cwd: root, env: { ...process.env, WIKI_APP_DIR: root }, encoding: "utf8" });
+    const restored = spawnSync(process.execPath, [worker, "restore-to", id, restore], { cwd: root, env: { ...process.env, WIKI_APP_DIR: root, WIKI_BACKUP_ALLOW_LOCAL_TEST: "1" }, encoding: "utf8" });
     assert.equal(restored.status, 0, restored.stderr);
     assert.equal(await readFile(path.join(restore, ".wrangler/wiki-content/private/private.md"), "utf8"), "private article\n");
     assert.equal(await readFile(path.join(restore, ".env"), "utf8"), "SESSION_SECRET=test\n");
@@ -37,11 +40,14 @@ test("local backup encrypts public and private data and verifies a restore", asy
     const indexed = JSON.parse(await readFile(indexPath, "utf8"));
     indexed[0].createdAt = "2020-01-01T00:00:00.000Z";
     await writeFile(indexPath, `${JSON.stringify(indexed)}\n`);
-    assert.equal(invoke("backup").status, 0);
+    assert.equal(invoke("scheduled").status, 0);
     assert.equal((await readdir(target)).filter((file) => file.endsWith(".tar.gpg")).length, 1);
     assert.equal(JSON.parse(await readFile(indexPath, "utf8")).length, 1);
     const status = JSON.parse(await readFile(path.join(data, "wiki-backup-status.json"), "utf8"));
     assert.equal(status.result, "Erfolgreich");
     assert.ok(status.verifiedAt);
+    const denied = spawnSync(process.execPath, [worker, "backup"], { cwd: root, env: { ...process.env, WIKI_APP_DIR: root, WIKI_BACKUP_ALLOW_LOCAL_TEST: "" }, encoding: "utf8" });
+    assert.notEqual(denied.status, 0);
+    assert.match(denied.stderr, /Lokale Sicherungsziele sind deaktiviert/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });

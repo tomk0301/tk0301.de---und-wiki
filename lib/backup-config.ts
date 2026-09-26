@@ -9,6 +9,7 @@ export type BackupConfig = {
   localPath: string;
   passphrase: string;
   retentionDays: number;
+  intervalHours: number;
   allowSelfSigned: boolean;
   certificateFingerprint: string;
   enabled: boolean;

@@ -25,11 +25,12 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
         <section className="article-list" aria-label="Wikiartikel">
           <form className="wiki-filter" method="get"><input name="q" defaultValue={params.q} placeholder="Artikel suchen …" aria-label="Artikel suchen" /><select name="sort" defaultValue={sort} aria-label="Sortierung"><option value="updated">Zuletzt bearbeitet</option><option value="created">Erstelltdatum</option><option value="title">Alphabetisch</option></select><button className="button button-small" type="submit">Anwenden</button></form>
           {articles.map((article, index) => (
-            <Link className="article-row" href={`/wiki/${article.slug}`} key={article.slug}>
+            <div className="article-row" key={article.slug}>
               <span className="card-number">{String(index + 1).padStart(2, "0")}</span>
-              <div><h2>{article.title}</h2><p>{article.summary}</p></div>
+              <Link className="article-row-content" href={`/wiki/${article.slug}`}><h2>{article.title}</h2><p>{article.summary}</p></Link>
               <span className="tag">{article.category}</span>
-            </Link>
+              {user.role === "admin" && <Link className="article-edit-link" href={`/verwaltung/articles/${article.id}/edit`} aria-label={`${article.title} bearbeiten`}>Bearbeiten</Link>}
+            </div>
           ))}
           {articles.length === 0 && <div className="empty-state"><h2>Noch keine veröffentlichten Artikel</h2><p>Schau später wieder vorbei.</p></div>}
         </section>

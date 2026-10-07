@@ -10,30 +10,41 @@ export async function saveBackupConfigAction(formData: FormData) {
   const current = await readBackupConfig();
   const value = (name: string) => String(formData.get(name) || "").trim();
   const target = value("target");
-  if (target !== "webdav") throw new Error("Nur NAS/WebDAV ist als Sicherungsziel zulässig");
+  if (target !== "webdav") redirect("/verwaltung/backup?error=target");
   const webdavUrl = value("webdavUrl");
-  if (!/^https:\/\//i.test(webdavUrl) || !value("username")) throw new Error("WebDAV benötigt HTTPS-URL und eigenen Wiki-Benutzer");
+  if (!/^https:\/\//i.test(webdavUrl) || !value("username")) redirect("/verwaltung/backup?error=webdav");
   const retentionDays = Number(value("retentionDays"));
-  if (!Number.isInteger(retentionDays) || retentionDays < 1 || retentionDays > 3650) throw new Error("Aufbewahrung: 1–3650 Tage");
+  if (!Number.isInteger(retentionDays) || retentionDays < 1 || retentionDays > 3650) redirect("/verwaltung/backup?error=retention");
   const intervalHours = Number(value("intervalHours"));
-  if (![6, 12, 24, 48, 168].includes(intervalHours)) throw new Error("Ungültiger Sicherungsrhythmus");
+  if (![6, 12, 24, 48, 168].includes(intervalHours)) redirect("/verwaltung/backup?error=interval");
   const password = value("password") || current?.password || "";
   const passphrase = value("passphrase") || current?.passphrase || "";
-  const certificateFingerprint = value("certificateFingerprint").replace(/:/g, "").toUpperCase();
-  if (formData.has("allowSelfSigned") && !/^[A-F0-9]{64}$/.test(certificateFingerprint)) throw new Error("Bei selbstsigniertem Zertifikat ist der SHA-256-Fingerabdruck erforderlich");
-  if (!password) throw new Error("WebDAV-Kennwort fehlt");
-  if (passphrase.length < 24) throw new Error("Sicherungsschlüssel muss mindestens 24 Zeichen lang sein");
-  await writeBackupConfig({ target, webdavUrl, username: value("username"), password, localPath: "",
-    passphrase, retentionDays, intervalHours, allowSelfSigned: formData.has("allowSelfSigned"), certificateFingerprint, enabled: formData.has("enabled") });
+  const certificateFingerprint = (value("certificateFingerprint") || current?.certificateFingerprint || "").replace(/:/g, "").toUpperCase();
+  if (formData.has("allowSelfSigned") && !/^[A-F0-9]{64}$/.test(certificateFingerprint)) redirect("/verwaltung/backup?error=fingerprint");
+  if (!password) redirect("/verwaltung/backup?error=password");
+  if (passphrase.length < 24) redirect("/verwaltung/backup?error=passphrase");
+  try {
+    await writeBackupConfig({ target, webdavUrl, username: value("username"), password, localPath: "",
+      passphrase, retentionDays, intervalHours, allowSelfSigned: formData.has("allowSelfSigned"), certificateFingerprint, enabled: formData.has("enabled") });
+  } catch (error) {
+    console.error("Wiki-Backup-Konfiguration konnte nicht gespeichert werden", error);
+    redirect("/verwaltung/backup?error=storage");
+  }
   redirect("/verwaltung/backup?saved=1");
 }
 
 export async function requestBackupAction(formData: FormData) {
   await requireRole("admin");
   const action = String(formData.get("action") || "");
-  if (action !== "backup" && action !== "verify") throw new Error("Ungültige Aktion");
+  if (action !== "backup" && action !== "verify") redirect("/verwaltung/backup?error=action");
   const config = await readBackupConfig();
-  if (!config?.enabled) throw new Error("Sicherung ist nicht aktiviert");
-  await writeFile(backupRequestFile, `${JSON.stringify({ id: randomUUID(), action, createdAt: new Date().toISOString() })}\n`, { flag: "wx", mode: 0o600 });
+  if (!config?.enabled) redirect("/verwaltung/backup?error=disabled");
+  try {
+    await writeFile(backupRequestFile, `${JSON.stringify({ id: randomUUID(), action, createdAt: new Date().toISOString() })}\n`, { flag: "wx", mode: 0o600 });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "EEXIST") redirect("/verwaltung/backup?error=queued");
+    console.error("Wiki-Backup-Auftrag konnte nicht vorgemerkt werden", error);
+    redirect("/verwaltung/backup?error=queue-storage");
+  }
   redirect("/verwaltung/backup?queued=1");
 }

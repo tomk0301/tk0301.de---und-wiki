@@ -24,9 +24,9 @@ Private Artikel und Laufzeitdaten bleiben ausschließlich auf dem Server.
 ## Backup & Restore
 
 Unter `/verwaltung/backup` wird ein **eigenes** Wiki-Sicherungsziel konfiguriert:
-WebDAV mit separatem NAS-Benutzer und eigenem Zielordner oder ein für den
-Dienstbenutzer `thomas` beschreibbarer lokaler/gemounteter Pfad. SCC-Zugangsdaten
-und SCC-Sicherungsverzeichnisse werden nicht übernommen. Die Konfiguration
+WebDAV mit separatem NAS-Benutzer und eigenem Zielordner. Lokale Sicherungsziele
+sind im Produktivbetrieb deaktiviert. SCC-Zugangsdaten und SCC-Sicherungsverzeichnisse
+werden nicht übernommen. Die Konfiguration
 liegt mit Modus 0600 unter `.wrangler/wiki-backup-config.json` und gehört
 ausdrücklich nicht ins Repository.
 Für selbstsignierte WebDAV-Zertifikate ist zusätzlich der SHA-256-Fingerabdruck
@@ -36,8 +36,10 @@ Der Dienst sichert `.wrangler/wiki-content` (öffentlich und privat), Benutzer,
 Geräte, Einstellungen, Uploads, den alten Artikelbestand und `.env` in ein
 GPG-verschlüsseltes Archiv. Nach Upload wird das Archiv erneut geladen,
 per SHA-256 geprüft, entschlüsselt und isoliert extrahiert. Erst danach gilt
-ein Lauf als erfolgreich. Die tägliche Sicherung und manuelle Aufträge aus
-der Administrationsseite werden von zwei systemd-Timern ausgeführt; alte
+ein Lauf als erfolgreich. Regelmäßige Sicherungen und manuelle Aufträge aus
+der Administrationsseite werden von `wiki-backup.timer` und
+`wiki-backup-queue.timer` ausgeführt. Beide Timer müssen auf dem Server
+installiert und aktiviert sein; nur die Dateien im Repository genügen nicht. Alte
 Archive werden erst nach einem erfolgreichen neuen Backup gemäß Aufbewahrung
 gelöscht.
 

@@ -9,7 +9,21 @@ export const metadata: Metadata = { title: "Backup & Restore" };
 export const dynamic = "force-dynamic";
 
 type Status = { result?: string; at?: string; message?: string; target?: string; latest?: string; verifiedAt?: string };
-export default async function BackupPage({ searchParams }: { searchParams: Promise<{ saved?: string; queued?: string }> }) {
+const errors: Record<string, string> = {
+  target: "Nur WebDAV/NAS ist als Sicherungsziel zulässig.",
+  webdav: "Bitte eine HTTPS-Zieladresse und einen eigenen Wiki-NAS-Benutzer eintragen.",
+  retention: "Die Aufbewahrung muss zwischen 1 und 3650 Tagen liegen.",
+  interval: "Bitte einen gültigen Sicherungsrhythmus wählen.",
+  fingerprint: "Für ein selbstsigniertes Zertifikat ist der SHA-256-Fingerabdruck mit 64 Hex-Zeichen erforderlich.",
+  password: "Das WebDAV-Kennwort fehlt. Bitte das Kennwort erneut eingeben.",
+  passphrase: "Der Verschlüsselungsschlüssel fehlt oder ist kürzer als 24 Zeichen.",
+  storage: "Die Konfiguration konnte auf dem Server nicht gespeichert werden. Bitte die Dateirechte prüfen.",
+  action: "Ungültiger Sicherungsauftrag.",
+  disabled: "Bitte die automatische Sicherung zuerst aktivieren und die Konfiguration speichern.",
+  queued: "Ein Sicherungsauftrag wartet bereits auf Bearbeitung.",
+  "queue-storage": "Der Sicherungsauftrag konnte auf dem Server nicht vorgemerkt werden.",
+};
+export default async function BackupPage({ searchParams }: { searchParams: Promise<{ saved?: string; queued?: string; error?: string }> }) {
   await requireRole("admin");
   const config = await readBackupConfig();
   let status: Status = {};
@@ -18,12 +32,12 @@ export default async function BackupPage({ searchParams }: { searchParams: Promi
   return <main className="subpage"><SiteHeader title="Backup & Restore" />
     <div className="page-shell editor-shell"><div className="eyebrow">Nur für Administratoren</div><h1>Wiki-Datensicherung</h1>
       <p>Öffentliche und private Artikel, Uploads, Benutzer, Geräte und Einstellungen werden gemeinsam verschlüsselt gesichert. Das Ziel und der WebDAV-Benutzer sind unabhängig von SCC.</p>
-      {notice.saved && <p className="success">Konfiguration gespeichert.</p>}{notice.queued && <p className="success">Auftrag vorgemerkt. Der Sicherungsdienst bearbeitet ihn in wenigen Minuten.</p>}
+      {notice.saved && <p className="success">Konfiguration gespeichert.</p>}{notice.queued && <p className="success">Auftrag vorgemerkt. Der Sicherungsdienst bearbeitet ihn in wenigen Minuten.</p>}{notice.error && <p className="error" role="alert">{errors[notice.error] || "Die Aktion konnte nicht abgeschlossen werden."}</p>}
       <section className="admin-panel backup-status-panel"><article className="stat"><span className="card-kicker">Letzter Lauf</span><strong>{status.result || "Noch keiner"}</strong><small>{status.at || ""}</small></article><article className="stat"><span className="card-kicker">Letzte Prüfung</span><strong>{status.verifiedAt ? "Erfolgreich" : "Ausstehend"}</strong><small>{status.verifiedAt || ""}</small></article><article className="stat backup-archive-card"><span className="card-kicker">Letztes NAS-Archiv</span><strong>{status.latest ? "Geprüft" : "Noch keines"}</strong><small>{status.message || ""}</small>{status.latest && <code>{status.latest}</code>}</article></section>
       <form id="backup-config" className="editor-form" action={saveBackupConfigAction}>
         <label className="field"><span>Sicherungsziel</span><select name="target" defaultValue="webdav"><option value="webdav">WebDAV / NAS</option></select></label>
-        <label className="field"><span>WebDAV-Zielordner (vollständige HTTPS-URL)</span><input name="webdavUrl" type="url" defaultValue={config?.webdavUrl || ""} placeholder="https://nas.example:5006/TK0301-Wiki" /></label>
-        <label className="field"><span>Eigener Wiki-NAS-Benutzer</span><input name="username" defaultValue={config?.username || ""} autoComplete="off" /></label>
+        <label className="field"><span>WebDAV-Zielordner (vollständige HTTPS-URL)</span><input name="webdavUrl" type="url" defaultValue={config?.webdavUrl || ""} placeholder="https://nas.example:5006/TK0301-Wiki" required /></label>
+        <label className="field"><span>Eigener Wiki-NAS-Benutzer</span><input name="username" defaultValue={config?.username || ""} autoComplete="off" required /></label>
         <label className="field"><span>WebDAV-Kennwort</span><input name="password" type="password" placeholder={config?.password ? "Gespeichert – leer lassen zum Beibehalten" : ""} autoComplete="new-password" /></label>
         <label className="field"><span>Verschlüsselungsschlüssel</span><input name="passphrase" type="password" placeholder={config?.passphrase ? "Gespeichert – leer lassen zum Beibehalten" : "Mindestens 24 Zeichen"} autoComplete="new-password" /><small className="field-help">Für die Wiederherstellung nach einem Serverausfall den Schlüssel außerhalb des Servers sicher aufbewahren.</small></label>
         <label className="field"><span>Aufbewahrung (Tage)</span><input name="retentionDays" type="number" min="1" max="3650" defaultValue={config?.retentionDays || 90} required /></label>

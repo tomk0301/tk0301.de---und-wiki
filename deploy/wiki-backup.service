@@ -9,6 +9,9 @@ User=thomas
 Group=www-data
 WorkingDirectory=/var/www/tk0301.site/app
 Environment=PATH=/home/thomas/.local/node/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GNUPGHOME=/run/wiki-backup-scheduled
+RuntimeDirectory=wiki-backup-scheduled
+RuntimeDirectoryMode=0700
 ExecStart=/usr/bin/flock -w 300 /var/www/tk0301.site/app/.wrangler/wiki-backup.lock /home/thomas/.local/node/bin/node scripts/wiki-backup.mjs scheduled
 UMask=0077
 NoNewPrivileges=true

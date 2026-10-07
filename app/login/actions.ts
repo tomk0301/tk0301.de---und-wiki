@@ -6,6 +6,7 @@ import { signSession, signTrustedDevice, verifyPassword, verifyTotp, verifyTrust
 import { secureUrl } from "../../lib/secure-url";
 import { getUserByUsername, normalizeUsername } from "../../lib/users";
 import { createDevice, getDevice } from "../../lib/devices";
+import { createIdleSession, revokeIdleSession } from "../../lib/idle-session";
 
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
@@ -36,7 +37,9 @@ export async function login(formData: FormData) {
   attempts.delete(username);
 
   const jar = await cookies();
-  jar.set("tk_session", signSession(user.id), {
+  const sessionToken = signSession(user.id);
+  await createIdleSession(sessionToken);
+  jar.set("tk_session", sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -54,6 +57,8 @@ export async function login(formData: FormData) {
 
 export async function logout() {
   const jar = await cookies();
+  const token = jar.get("tk_session")?.value;
+  if (token) await revokeIdleSession(token);
   jar.delete("tk_session");
   redirect(await secureUrl("/"));
 }

@@ -7,9 +7,9 @@ import { secureUrl } from "../../lib/secure-url";
 
 export const metadata: Metadata = { title: "Anmeldung" };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; idle?: string }> }) {
   if (await getCurrentUser()) redirect(await secureUrl("/"));
-  const error = (await searchParams).error;
+  const { error, idle } = await searchParams;
   return (
     <main className="subpage">
       <header className="site-header">
@@ -21,9 +21,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <div className="eyebrow">Geschützter Bereich</div>
           <h1>Sicher anmelden</h1>
           <p>Bitte Benutzername, Passwort und aktuellen Code der Authenticator-App eingeben.</p>
-          {error && (
+          {(error || idle) && (
             <p className="error" role="alert">
-              {error === "rate"
+              {idle ? "Du wurdest wegen Inaktivität abgemeldet. Bitte melde dich erneut an." : error === "rate"
                 ? "Zu viele Anmeldeversuche. Bitte 15 Minuten warten."
                 : "Benutzername, Passwort oder Einmalcode ist nicht korrekt."}
             </p>
@@ -44,7 +44,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <label className="remember-device"><input name="rememberDevice" type="checkbox" value="yes" defaultChecked /> Dieses Gerät 28 Tage merken</label>
             <button className="button" type="submit">Sicher anmelden</button>
           </form>
-          <p className="security-note">Die Sitzung endet automatisch nach acht Stunden.</p>
+          <p className="security-note">Bei Inaktivität erfolgt eine automatische Abmeldung mit 30 Sekunden Vorwarnung; spätestens nach acht Stunden endet die Sitzung.</p>
         </section>
       </div>
     </main>

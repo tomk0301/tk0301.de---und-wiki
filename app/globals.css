@@ -46,6 +46,12 @@ nav { display: flex; gap: 28px; align-items: center; font-size: 14px; font-weigh
 }
 .button:hover { background: #344039; }
 .button-small { padding: 10px 17px; font-size: 13px; }
+.idle-overlay { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:24px; background:rgba(15,25,21,.67); }
+.idle-dialog { width:min(100%,480px); padding:32px; border-radius:8px; background:#fff; box-shadow:0 24px 80px rgba(0,0,0,.3); }
+.idle-dialog h2 { margin:14px 0 10px; font-size:30px; letter-spacing:-.04em; }
+.idle-dialog p { line-height:1.5; }
+.idle-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:24px; }
+.idle-actions .button:disabled { opacity:.5; cursor:wait; }
 .hero { min-height: 620px; padding: 92px clamp(24px, 8vw, 120px) 40px; position: relative; overflow: hidden; }
 .eyebrow, .card-kicker {
   text-transform: uppercase; letter-spacing: .17em; font-size: 11px; font-weight: 800;

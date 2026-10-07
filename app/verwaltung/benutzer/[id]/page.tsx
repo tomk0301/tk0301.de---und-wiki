@@ -7,6 +7,8 @@ import { deleteUserAction, revokeDeviceAction, updateUserAction } from "../actio
 import { listDevices } from "../../../../lib/devices";
 import { listArticles } from "../../../../lib/wiki";
 import { SiteHeader } from "../../../site-header";
+import { getSiteSettings } from "../../../../lib/site-settings";
+import { formatDateTime } from "../../../../lib/date-time";
 
 export const metadata: Metadata = { title: "Benutzer bearbeiten" };
 export const dynamic = "force-dynamic";
@@ -28,6 +30,7 @@ export default async function EditUserPage({
   searchParams: Promise<{ error?: string; saved?: string; setup?: string }>;
 }) {
   await requireRole("admin");
+  const settings = await getSiteSettings();
   const user = await getUserById((await params).id);
   if (!user) notFound();
   const devices = await listDevices(user.id);
@@ -66,7 +69,7 @@ export default async function EditUserPage({
           {user.role === "reader" && <fieldset className="field-wide"><legend>Leserechte für Artikel</legend>{articles.map((article) => <label className="confirm-check" key={article.id}><input type="checkbox" name="allowedArticleIds" value={article.id} defaultChecked={user.allowedArticleIds?.includes(article.id)} /> {article.title}</label>)}</fieldset>}
           <div className="editor-actions field-wide"><button className="button" type="submit">Änderungen speichern</button><Link className="text-link" href="/verwaltung/benutzer">Zurück</Link></div>
         </form>
-        <section className="image-upload"><h2>Vertrauenswürdige Geräte</h2><p className="field-help">Geräte, auf denen die 2FA-Abfrage für 28 Tage übersprungen wird.</p>{devices.length === 0 && <p>Keine gespeicherten Geräte.</p>}{devices.map((device) => <div className="device-row" key={device.id}><div><strong>{device.name}</strong><small>Zuletzt genutzt: {new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: "short" }).format(new Date(device.lastUsedAt))}<br />Gültig bis: {new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" }).format(new Date(device.expiresAt))}</small></div><form action={revokeDeviceAction}><input type="hidden" name="deviceId" value={device.id} /><input type="hidden" name="userId" value={user.id} /><button className="button button-danger button-small" type="submit">Widerrufen</button></form></div>)}</section>
+        <section className="image-upload"><h2>Vertrauenswürdige Geräte</h2><p className="field-help">Geräte, auf denen die 2FA-Abfrage für 28 Tage übersprungen wird.</p>{devices.length === 0 && <p>Keine gespeicherten Geräte.</p>}{devices.map((device) => <div className="device-row" key={device.id}><div><strong>{device.name}</strong><small>Zuletzt genutzt: {formatDateTime(device.lastUsedAt, settings)}<br />Gültig bis: {formatDateTime(device.expiresAt, settings)}</small></div><form action={revokeDeviceAction}><input type="hidden" name="deviceId" value={device.id} /><input type="hidden" name="userId" value={user.id} /><button className="button button-danger button-small" type="submit">Widerrufen</button></form></div>)}</section>
         <section className="danger-zone">
           <div><h2>Benutzer löschen</h2><p>Der Benutzer verliert sofort dauerhaft den Zugriff.</p></div>
           <form action={deleteUserAction}>

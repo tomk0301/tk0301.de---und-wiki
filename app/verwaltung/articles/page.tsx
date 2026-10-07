@@ -5,6 +5,8 @@ import { requireRole } from "../../../lib/current-user";
 import { SiteHeader } from "../../site-header";
 import { deleteArticleAction } from "./actions";
 import { DeleteButton } from "./delete-button";
+import { getSiteSettings } from "../../../lib/site-settings";
+import { formatDateTime } from "../../../lib/date-time";
 
 export const metadata: Metadata = { title: "Artikelpflege" };
 export const dynamic = "force-dynamic";
@@ -16,6 +18,7 @@ export default async function ArticlesAdminPage({
 }) {
   await requireRole("admin");
   const articles = await listArticles(true);
+  const settings = await getSiteSettings();
   const deleted = Boolean((await searchParams).deleted);
   return (
     <main className="subpage">
@@ -37,7 +40,7 @@ export default async function ArticlesAdminPage({
                 <div className="article-meta">
                   <span className={`status status-${article.status}`}>{article.status === "published" ? "Veröffentlicht" : "Entwurf"}</span>
                   <span>{article.category}</span>
-                  <span>Geändert {new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Berlin" }).format(new Date(article.updatedAt))}</span>
+                  <span>Geändert {formatDateTime(article.updatedAt, settings)}</span>
                 </div>
                 <h2>{article.title}</h2>
                 <p>{article.summary}</p>

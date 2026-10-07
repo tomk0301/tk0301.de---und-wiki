@@ -5,6 +5,8 @@ import { getArticle } from "../../../lib/wiki";
 import { ArticleContent } from "../article-content";
 import { requireUser } from "../../../lib/current-user";
 import { SiteHeader } from "../../site-header";
+import { getSiteSettings } from "../../../lib/site-settings";
+import { formatDateTime } from "../../../lib/date-time";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const user = await requireUser();
   const article = await getArticle((await params).slug, false, user.role === "admin");
   if (!article) notFound();
+  const settings = await getSiteSettings();
   return (
     <main className="subpage">
       <SiteHeader title="Wiki" />
@@ -25,7 +28,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         <Link className="back" href="/wiki">← Alle Artikel</Link>
         <div className="eyebrow">
           {article.category} · Aktualisiert am{" "}
-          {new Intl.DateTimeFormat("de-DE", { dateStyle: "long", timeZone: "Europe/Berlin" }).format(new Date(article.updatedAt))}
+          {formatDateTime(article.updatedAt, settings)}
         </div>
         <h1>{article.title}</h1>
         <p>{article.summary}</p>

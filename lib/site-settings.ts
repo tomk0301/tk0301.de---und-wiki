@@ -1,13 +1,16 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { validDateTimeFormat, validTimeZone, type DateTimeSettings } from "./date-time";
 
-export type SiteSettings = { wikiEyebrow: string; wikiTitle: string; wikiIntro: string; idleTimeoutMinutes: number };
-const defaults: SiteSettings = { wikiEyebrow: "Geschützte Wissenssammlung", wikiTitle: "Kurz erklärt.\nDauerhaft notiert.", wikiIntro: "Technische Anleitungen, Notizen und Lösungen aus der Praxis. Artikel sind für angemeldete Benutzer lesbar.", idleTimeoutMinutes: 30 };
+export type SiteSettings = DateTimeSettings & { wikiEyebrow: string; wikiTitle: string; wikiIntro: string; idleTimeoutMinutes: number };
+const defaults: SiteSettings = { wikiEyebrow: "Geschützte Wissenssammlung", wikiTitle: "Kurz erklärt.\nDauerhaft notiert.", wikiIntro: "Technische Anleitungen, Notizen und Lösungen aus der Praxis. Artikel sind für angemeldete Benutzer lesbar.", idleTimeoutMinutes: 30, timeZone: "Europe/Berlin", dateTimeFormat: "de-DE" };
 const file = path.join(process.cwd(), ".wrangler", "site-settings.json");
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const settings = { ...defaults, ...JSON.parse(await readFile(file, "utf8")) };
     if (!Number.isInteger(settings.idleTimeoutMinutes) || settings.idleTimeoutMinutes < 1 || settings.idleTimeoutMinutes > 480) settings.idleTimeoutMinutes = defaults.idleTimeoutMinutes;
+    if (!validTimeZone(settings.timeZone)) settings.timeZone = defaults.timeZone;
+    if (!validDateTimeFormat(settings.dateTimeFormat)) settings.dateTimeFormat = defaults.dateTimeFormat;
     return settings;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;

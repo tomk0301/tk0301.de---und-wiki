@@ -23,6 +23,12 @@ Private Artikel und Laufzeitdaten bleiben ausschließlich auf dem Server.
 
 ## Backup & Restore
 
+Unter `/verwaltung/einstellungen` werden Zeitzone (Standard `Europe/Berlin`)
+und Datums-/Zeitformat (Standard Deutsch) zentral eingestellt. Die Anzeige von
+Backup-Läufen, Prüfungen, Archiv-Erstellungszeiten, Artikeländerungen und Geräten
+nutzt diese Einstellungen einschließlich Sommer-/Winterzeit. Gespeicherte
+Zeitstempel und Archivdateinamen bleiben stabile UTC-Kennungen.
+
 Unter `/verwaltung/backup` wird ein **eigenes** Wiki-Sicherungsziel konfiguriert:
 WebDAV mit separatem NAS-Benutzer und eigenem Zielordner. Lokale Sicherungsziele
 sind im Produktivbetrieb deaktiviert. SCC-Zugangsdaten und SCC-Sicherungsverzeichnisse

@@ -4,6 +4,8 @@ import { requireRole } from "../../../lib/current-user";
 import { backupStatusFile, readBackupConfig } from "../../../lib/backup-config";
 import { requestBackupAction, saveBackupConfigAction } from "./actions";
 import { SiteHeader } from "../../site-header";
+import { getSiteSettings } from "../../../lib/site-settings";
+import { backupArchiveCreatedAt, formatDateTime } from "../../../lib/date-time";
 
 export const metadata: Metadata = { title: "Backup & Restore" };
 export const dynamic = "force-dynamic";
@@ -26,6 +28,7 @@ const errors: Record<string, string> = {
 export default async function BackupPage({ searchParams }: { searchParams: Promise<{ saved?: string; queued?: string; error?: string }> }) {
   await requireRole("admin");
   const config = await readBackupConfig();
+  const settings = await getSiteSettings();
   let status: Status = {};
   try { status = JSON.parse(await readFile(backupStatusFile, "utf8")); } catch { /* noch kein Lauf */ }
   const notice = await searchParams;
@@ -33,7 +36,8 @@ export default async function BackupPage({ searchParams }: { searchParams: Promi
     <div className="page-shell editor-shell"><div className="eyebrow">Nur für Administratoren</div><h1>Wiki-Datensicherung</h1>
       <p>Öffentliche und private Artikel, Uploads, Benutzer, Geräte und Einstellungen werden gemeinsam verschlüsselt gesichert. Das Ziel und der WebDAV-Benutzer sind unabhängig von SCC.</p>
       {notice.saved && <p className="success">Konfiguration gespeichert.</p>}{notice.queued && <p className="success">Auftrag vorgemerkt. Der Sicherungsdienst bearbeitet ihn in wenigen Minuten.</p>}{notice.error && <p className="error" role="alert">{errors[notice.error] || "Die Aktion konnte nicht abgeschlossen werden."}</p>}
-      <section className="admin-panel backup-status-panel"><article className="stat"><span className="card-kicker">Letzter Lauf</span><strong>{status.result || "Noch keiner"}</strong><small>{status.at || ""}</small></article><article className="stat"><span className="card-kicker">Letzte Prüfung</span><strong>{status.verifiedAt ? "Erfolgreich" : "Ausstehend"}</strong><small>{status.verifiedAt || ""}</small></article><article className="stat backup-archive-card"><span className="card-kicker">Letztes NAS-Archiv</span><strong>{status.latest ? "Geprüft" : "Noch keines"}</strong><small>{status.message || ""}</small>{status.latest && <code>{status.latest}</code>}</article></section>
+      <p className="field-help">Zeitangaben: {settings.timeZone} · <a href="/verwaltung/einstellungen">Zeitzone und Format einstellen</a></p>
+      <section className="admin-panel backup-status-panel"><article className="stat"><span className="card-kicker">Letzter Lauf</span><strong>{status.result || "Noch keiner"}</strong><small>{formatDateTime(status.at, settings)}</small></article><article className="stat"><span className="card-kicker">Letzte Prüfung</span><strong>{status.verifiedAt ? "Erfolgreich" : "Ausstehend"}</strong><small>{formatDateTime(status.verifiedAt, settings)}</small></article><article className="stat backup-archive-card"><span className="card-kicker">Letztes NAS-Archiv</span><strong>{status.latest ? "Geprüft" : "Noch keines"}</strong><small>{status.message || ""}</small>{status.latest && <><small>Erstellt: {formatDateTime(backupArchiveCreatedAt(status.latest), settings)}</small><code>{status.latest}</code></>}</article></section>
       <form id="backup-config" className="editor-form" action={saveBackupConfigAction}>
         <label className="field"><span>Sicherungsziel</span><select name="target" defaultValue="webdav"><option value="webdav">WebDAV / NAS</option></select></label>
         <label className="field"><span>WebDAV-Zielordner (vollständige HTTPS-URL)</span><input name="webdavUrl" type="url" defaultValue={config?.webdavUrl || ""} placeholder="https://nas.example:5006/TK0301-Wiki" required /></label>
